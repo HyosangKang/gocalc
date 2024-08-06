@@ -6,8 +6,6 @@ import (
 
 type SimpleVector []float64
 
-var _ gocalc.Vector = SimpleVector{}
-
 func (p SimpleVector) Equals(q any) bool {
 	if qq, ok := q.(gocalc.Point); !ok {
 		return false

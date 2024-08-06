@@ -73,14 +73,10 @@ func Graph(gpr Grapher, opt GraphOption) {
 	png.Encode(fp, img)
 }
 
-func Contour(gpr Grapher, opt GraphOption) {
-}
-
 type GraphOption struct {
 	Nsub                   int
 	Xmin, Xmax, Ymin, Ymax float64
 	Width, Height          int
-	Levels                 []float64 // for Contour only
 	Filename               string
 }
 

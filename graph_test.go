@@ -15,6 +15,72 @@ func TestToInt(t *testing.T) {
 	t.Log(jdx)
 }
 
+type Single struct {
+	Interval
+	Eval func(float64) float64
+	Prec func(float64, float64) float64
+}
+
+var (
+	s                = Single{}
+	_ gocalc.Grapher = s
+)
+
+func (s Single) Eps(d gocalc.Real, x gocalc.Point) gocalc.Real {
+	return SimpleReal(s.Prec(d.ToFloat(), x.Map(0).ToFloat()))
+}
+
+func (s Single) Map(p gocalc.Point) gocalc.Real {
+	if p.Len() != 1 {
+		panic("SimpleSigle.Map: P dim mismatch")
+	}
+	x := p.Map(0).ToFloat()
+	return SimpleReal(s.Eval(x))
+}
+
+func (s Single) Lift(p gocalc.Point) gocalc.Point {
+	x := p.Map(0).ToFloat()
+	return &SimpleVector{
+		x,
+		s.Eval(x),
+	}
+}
+
+func (s Single) Project(p gocalc.Point) gocalc.Point {
+	return p
+}
+
+type Double struct {
+	Rect
+	Eval func(float64, float64) float64
+}
+
+var (
+	d                = Double{}
+	_ gocalc.Grapher = d
+)
+
+func (d Double) Map(p gocalc.Point) gocalc.Real {
+	if p.Len() != 2 {
+		panic("Double.Map: P dimemsion mismatch")
+	}
+	x, y := p.Map(0).ToFloat(), p.Map(1).ToFloat()
+	return SimpleReal(d.Eval(x, y))
+}
+
+func (d Double) Lift(p gocalc.Point) gocalc.Point {
+	x, y := p.Map(0).ToFloat(), p.Map(1).ToFloat()
+	return SimpleVector{x, y, d.Eval(x, y)}
+}
+
+func (d Double) Project(p gocalc.Point) gocalc.Point {
+	t1, t2 := -1.0, -1.0
+	x, y, z := p.Map(0).ToFloat(), p.Map(1).ToFloat(), p.Map(2).ToFloat()
+	x, y = x*math.Cos(t1)-y*math.Sin(t1), x*math.Sin(t1)+y*math.Cos(t1)
+	y, z = y*math.Cos(t2)-z*math.Sin(t2), y*math.Sin(t2)+z*math.Cos(t2)
+	return SimpleVector{x, y}
+}
+
 func TestGraph1(t *testing.T) {
 	s := Single{
 		Interval: Interval{-2 * math.Pi, 2 * math.Pi},

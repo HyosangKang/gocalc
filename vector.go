@@ -1,8 +1,17 @@
 package gocalc
 
+type Map[T1, T2 any] interface {
+	Map(T1) T2
+}
+
+type Sequence interface {
+	Map[int, Real]
+}
+
 type Point interface {
 	Element
-	FiniteSequence
+	Finite
+	Sequence
 }
 
 type Vector interface {
