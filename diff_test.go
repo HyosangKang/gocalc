@@ -24,7 +24,7 @@ type Multiple struct {
 	Eval func(...float64) []float64
 }
 
-var _ gocalc.VectorValued = Multiple{}
+var _ gocalc.Parametric = Multiple{}
 
 func (m Multiple) Map(p gocalc.Point) gocalc.Vector {
 	if p.Len() != len(m.Rect) {

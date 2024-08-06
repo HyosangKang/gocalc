@@ -1,12 +1,12 @@
 package gocalc
 
-type VectorValued interface {
+type Parametric interface {
 	Region
 	Map[Point, Vector]
 }
 
 type Manifold interface {
-	Locals() <-chan VectorValued
+	Locals() <-chan Parametric
 }
 
 type Wedge interface {
@@ -20,26 +20,34 @@ type Form interface {
 }
 
 func Integral(f Form, nsub int) Real {
-	var sum Real
+	var sum []Real
 	for prm := range f.Locals() {
+		s := prm.Corner().Map(0).Zero().(Real)
 		rank := prm.Corner().Len()
 		mesh := Mesh(prm, nsub)
 		for wdg := range f.Wedges() {
 			for i, p := range mesh {
+				pp := prm.Map(p)
 				nbhr := Neighbors(i, nsub, rank)
 				if len(nbhr) != rank {
 					continue
 				}
 				bdry := make([]Vector, rank)
-				for i := 0; i < rank; i++ {
-					bdry[i] = mesh[nbhr[i]].Add(p.AddInv()).(Vector)
+				for j := 0; j < rank; j++ {
+					qq := prm.Map(mesh[nbhr[j]])
+					bdry[j] = qq.Add(pp.AddInv()).(Vector)
 				}
 				vol := Volume(bdry, wdg.Wedge())
-				sum = sum.Add(vol.Mul(wdg.Map(p)).(Real)).(Real)
+				s = s.Add(vol.Mul(wdg.Map(pp)).(Real)).(Real)
 			}
 		}
+		sum = append(sum, s)
 	}
-	return sum
+	v := sum[0]
+	for i := 1; i < len(sum); i++ {
+		v = v.Add(sum[i]).(Real)
+	}
+	return v
 }
 
 func Volume(bdry []Vector, wdg []int) Real {

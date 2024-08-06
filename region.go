@@ -1,15 +1,7 @@
 package gocalc
 
-type Element interface {
-	Equals(any) bool
-}
-
 type Set[T Element] interface {
 	Contains(T) bool
-}
-
-type Finite interface {
-	Len() int
 }
 
 type Region interface {

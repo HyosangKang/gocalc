@@ -4,14 +4,14 @@ type Map[T1, T2 any] interface {
 	Map(T1) T2
 }
 
-type Sequence interface {
-	Map[int, Real]
+type Finite interface {
+	Len() int
 }
 
 type Point interface {
 	Element
 	Finite
-	Sequence
+	Map[int, Real]
 }
 
 type Vector interface {
@@ -21,8 +21,6 @@ type Vector interface {
 	Inner(Vector) Real
 	Basis() []Vector
 }
-
-type PV = Vector
 
 func Distance(p, q Point) Real {
 	if p.Len() != q.Len() {

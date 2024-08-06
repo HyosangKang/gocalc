@@ -12,6 +12,10 @@ type Multiplicative interface {
 	One() Multiplicative
 }
 
+type Element interface {
+	Equals(any) bool
+}
+
 type Real interface {
 	Element
 	Additive
@@ -20,7 +24,20 @@ type Real interface {
 	ToFloat() float64
 }
 
-// Rational returns r[0]/r[1] in Real system of f.
+func Integer(f Real, n int) Real {
+	if n == 0 {
+		return f.Zero().(Real)
+	}
+	o := f.One().(Real)
+	if n < 0 {
+		o = o.AddInv().(Real)
+	}
+	for i := 0; i < n; i++ {
+		o = o.Add(o).(Real)
+	}
+	return o
+}
+
 func Rational(f Real, r [2]int) Real {
 	if r[1] == 0 {
 		return nil
@@ -28,24 +45,8 @@ func Rational(f Real, r [2]int) Real {
 	if r[0] == 0 {
 		return f.Zero().(Real)
 	}
-	var rr [2]Real
-	for i := 0; i < 2; i++ {
-		n := r[i]
-		var o Real
-		if r[i] > 0 {
-			o = f.One().(Real)
-		} else {
-			o = f.One().(Real).AddInv().(Real)
-			n = -n
-		}
-		t := f.Zero().(Real)
-		for i := 0; i < n; i++ {
-			t = t.Add(o).(Real)
-		}
-		rr[i] = t
-	}
-	return rr[0].Mul(rr[1].MulInv()).(Real)
-
+	a, b := Integer(f, r[0]), Integer(f, r[1])
+	return a.Mul(b.MulInv()).(Real)
 }
 
 func Sqrt(a Real) Real {
