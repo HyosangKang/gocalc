@@ -6,17 +6,17 @@ import (
 	"testing"
 )
 
-func TestIndex_ToInt(t *testing.T) {
-	idx := gocalc.Index{0, 1, 2}
-	max := []int{1, 2, 2}
-	n := idx.ToInt(max)
-	jdx := gocalc.ToIndex(n, max)
+func TestToInt(t *testing.T) {
+	idx := []int{0, 1, 2}
+	max := 2
+	n := gocalc.ToInt(idx, max)
+	jdx := gocalc.ToIdx(n, max, len(idx))
 	t.Log(n)
 	t.Log(jdx)
 }
 
 func TestGraph1(t *testing.T) {
-	single := Single{
+	s := Single{
 		Interval: Interval{-2 * math.Pi, 2 * math.Pi},
 		Eval: func(x float64) float64 {
 			return math.Sin(x)
@@ -26,7 +26,7 @@ func TestGraph1(t *testing.T) {
 		},
 	}
 
-	gocalc.Graph(single, gocalc.GraphOption{
+	gocalc.Graph(s, gocalc.GraphOption{
 		Nsub: 100,
 		Xmin: -7, Xmax: 7,
 		Ymin: -1, Ymax: 1,

@@ -15,10 +15,7 @@ func TestGradient(t *testing.T) {
 			return x*x + y*y
 		},
 	}
-	p := SimplePoint{
-		SimpleReal(0.5),
-		SimpleReal(0.5),
-	}
+	p := SimpleVector{.5, .5}
 	t.Log(gocalc.Gradient(f.Map, p, SimpleReal(1e-6)))
 }
 
@@ -38,10 +35,8 @@ func (m Multiple) Map(p gocalc.Point) gocalc.Vector {
 		x[i] = p.Map(i).ToFloat()
 	}
 	y := m.Eval(x...)
-	v := make(SimplePoint, len(y))
-	for i := range y {
-		v[i] = SimpleReal(y[i])
-	}
+	v := make(SimpleVector, len(y))
+	copy(v, y)
 	return v
 }
 
@@ -55,14 +50,8 @@ func TestDifferential(t *testing.T) {
 			return []float64{x[0]*x[0] + x[1]*x[1], x[0]*x[0] - x[1]*x[1]}
 		},
 	}
-	p := SimplePoint{
-		SimpleReal(0.5),
-		SimpleReal(0.5),
-	}
+	p := SimpleVector{.5, .5}
 	diff := gocalc.Differential(f, p, SimpleReal(1e-6))
-	v := SimplePoint{
-		SimpleReal(1),
-		SimpleReal(1),
-	}
+	v := SimpleVector{1., 1.}
 	t.Log(diff(v))
 }

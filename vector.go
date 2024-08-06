@@ -10,7 +10,7 @@ type Vector interface {
 	Additive
 	Scale(Real) Vector
 	Inner(Vector) Real
-	Basis() <-chan Vector
+	Basis() []Vector
 }
 
 type PV = Vector

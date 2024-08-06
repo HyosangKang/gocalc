@@ -7,41 +7,37 @@ import (
 	"os"
 )
 
-type Index []int
-
 // ToInt converts an index to an integer with the maximum indices at each dimension
-func (idx Index) ToInt(max []int) int {
+func ToInt(idx []int, max int) int {
 	n := idx[len(idx)-1]
 	for i := len(idx) - 2; i >= 0; i-- {
-		n = n*(max[i]+1) + idx[i]
+		n = n*(max+1) + idx[i]
 	}
 	return n
 }
 
 // ToIndex converts an integer to an index with the maximum indices at each dimension
-func ToIndex(i int, max []int) Index {
-	idx := make(Index, len(max))
-	for j := 0; j < len(max); j++ {
-		idx[j] = i % (max[j] + 1)
-		i /= (max[j] + 1)
+func ToIdx(n, max, len int) []int {
+	idx := make([]int, len)
+	for i := 0; i < len; i++ {
+		idx[i] = n % (max + 1)
+		n /= (max + 1)
 	}
 	return idx
 }
 
-func (idx Index) Neighbors(max []int) <-chan Index {
-	ch := make(chan Index)
-	go func() {
-		defer close(ch)
-		for i := 0; i < len(idx); i++ {
-			if idx[i] < max[i] {
-				jdx := make(Index, len(idx))
-				copy(jdx, idx)
-				jdx[i]++
-				ch <- jdx
-			}
+func Neighbors(n, max, len int) []int {
+	var nbhr []int
+	idx := ToIdx(n, max, len)
+	for i := 0; i < len; i++ {
+		if idx[i] < max {
+			jdx := make([]int, len)
+			copy(jdx, idx)
+			jdx[i]++
+			nbhr = append(nbhr, ToInt(jdx, max))
 		}
-	}()
-	return ch
+	}
+	return nbhr
 }
 
 type Cont interface {
@@ -49,7 +45,7 @@ type Cont interface {
 }
 
 type Grapher interface {
-	Box
+	Region
 	Lift(Point) Point
 	Project(Point) Point
 }
@@ -61,27 +57,15 @@ func Graph(gpr Grapher, opt GraphOption) {
 			color.White,
 			color.Black,
 		})
-	idxx, ps := Mesh(gpr, opt.Nsub)
-	max := make([]int, gpr.Base().Len())
-	for i := 0; i < gpr.Base().Len(); i++ {
-		max[i] = opt.Nsub
-	}
-	for i, p := range ps {
-		half := Rational(p.Map(0), [2]int{1, 2})
-		idx := idxx[i]
-		for jdx := range idx.Neighbors(max) {
-			q := ps[jdx.ToInt(max)]
-			pp, qq := gpr.Project(gpr.Lift(p)), gpr.Project(gpr.Lift(q))
-			if cgpr, ok := gpr.(Cont); ok {
-				d := Distance(p, q)
-				e := Distance(pp, qq)
-				m := p.Add(q).(Vector).Scale(half).(Vector)
-				if e.GreaterThan(cgpr.Eps(d, m)) {
-					opt.DrawLine(img, pp, qq)
-				}
-			} else {
-				opt.DrawLine(img, pp, qq)
-			}
+	nsub := opt.Nsub
+	dim := gpr.Corner().Len()
+	mesh := Mesh(gpr, opt.Nsub)
+	for i, p := range mesh {
+		for _, j := range Neighbors(i, nsub, dim) {
+			q := mesh[j]
+			opt.DrawLine(img,
+				gpr.Project(gpr.Lift(p)),
+				gpr.Project(gpr.Lift(q)))
 		}
 	}
 	fp, _ := os.Create(opt.Filename)

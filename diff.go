@@ -11,7 +11,7 @@ func Partial(f func(Point) Real, p, u Vector, delta Real) Real {
 
 func Gradient(f func(Point) Real, p Vector, delta Real) Vector {
 	var v Vector = p.Zero().(Vector)
-	for n := range p.Basis() {
+	for _, n := range p.Basis() {
 		d := Partial(f, p, n, delta)
 		v = v.Add(n.Scale(d)).(Vector)
 	}
@@ -22,7 +22,7 @@ func Differential(f Map[Point, Vector], p Vector, delta Real) func(Vector) Vecto
 	return func(v Vector) Vector {
 		var w Vector = p.Zero().(Vector)
 		var i int
-		for n := range p.Basis() {
+		for _, n := range p.Basis() {
 			ff := func(q Point) Real {
 				return f.Map(q).Map(i).(Real)
 			}
