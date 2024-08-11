@@ -22,13 +22,10 @@ type Vector interface {
 	Basis() []Vector
 }
 
-func Distance(p, q Point) Real {
+func Distance(p, q Vector) Real {
 	if p.Len() != q.Len() {
 		panic("Distance: points have different dimensions")
 	}
-	var v Real = p.Map(0)
-	for i := 0; i < p.Len(); i++ {
-		v = v.Add(p.Map(i).Mul(q.Map(i)).(Real)).(Real)
-	}
-	return Sqrt(v)
+	v := p.Add(q.AddInv()).(Vector)
+	return Sqrt(v.Inner(v))
 }

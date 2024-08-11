@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// ToInt converts an index to an integer with the maximum indices at each dimension
 func ToInt(idx []int, max int) int {
 	n := idx[len(idx)-1]
 	for i := len(idx) - 2; i >= 0; i-- {
@@ -16,7 +15,6 @@ func ToInt(idx []int, max int) int {
 	return n
 }
 
-// ToIndex converts an integer to an index with the maximum indices at each dimension
 func ToIdx(n, max, len int) []int {
 	idx := make([]int, len)
 	for i := 0; i < len; i++ {
@@ -40,7 +38,8 @@ func Neighbors(n, max, len int) []int {
 	return nbhr
 }
 
-type Cont interface {
+type Continuous interface {
+	Map[Point, Vector]
 	Eps(Real, Point) Real
 }
 
@@ -50,27 +49,29 @@ type Grapher interface {
 	Project(Point) Point
 }
 
-func Graph(gpr Grapher, opt GraphOption) {
-	img := image.NewPaletted(
-		image.Rect(0, 0, opt.Width, opt.Height),
-		[]color.Color{
-			color.White,
-			color.Black,
-		})
-	nsub := opt.Nsub
+func Graph(gpr Grapher, nsub int) <-chan [2]Point {
 	dim := gpr.Corner().Len()
-	mesh := Mesh(gpr, opt.Nsub)
-	for i, p := range mesh {
-		for _, j := range Neighbors(i, nsub, dim) {
-			q := mesh[j]
-			opt.DrawLine(img,
-				gpr.Project(gpr.Lift(p)),
-				gpr.Project(gpr.Lift(q)))
+	mesh := Mesh(gpr, nsub)
+	ch := make(chan [2]Point)
+	go func() {
+		defer close(ch)
+		for i, p := range mesh {
+			for _, j := range Neighbors(i, nsub, dim) {
+				q := mesh[j]
+				line := [2]Point{gpr.Lift(p), gpr.Lift(q)}
+				if fn, ok := gpr.(Continuous); ok {
+					delta := Distance(p, q)
+					eps := fn.Eps(delta, p)
+					if eps.GreaterThan(Distance(fn.Map(p), fn.Map(q))) {
+						ch <- line
+					}
+				} else {
+					ch <- line
+				}
+			}
 		}
-	}
-	fp, _ := os.Create(opt.Filename)
-	defer fp.Close()
-	png.Encode(fp, img)
+	}()
+	return ch
 }
 
 type GraphOption struct {
@@ -78,6 +79,23 @@ type GraphOption struct {
 	Xmin, Xmax, Ymin, Ymax float64
 	Width, Height          int
 	Filename               string
+}
+
+func (opt GraphOption) Save(gpr Grapher) {
+	img := image.NewPaletted(
+		image.Rect(0, 0, opt.Width, opt.Height),
+		[]color.Color{
+			color.White,
+			color.Black,
+		})
+	for line := range Graph(gpr, opt.Nsub) {
+		opt.DrawLine(img,
+			gpr.Project(line[0]),
+			gpr.Project(line[1]))
+	}
+	fp, _ := os.Create(opt.Filename)
+	defer fp.Close()
+	png.Encode(fp, img)
 }
 
 func (opt GraphOption) DrawLine(img *image.Paletted, p, q Point) {
@@ -92,7 +110,6 @@ func (opt GraphOption) DrawLine(img *image.Paletted, p, q Point) {
 			img.Set(i, j+l, color.Black)
 		}
 	}
-
 	n := Max(Abs(i0-i1), Abs(j0-j1))
 	if n == 0 {
 		DrawPoint(i0, j0)

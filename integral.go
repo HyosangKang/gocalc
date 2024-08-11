@@ -55,7 +55,7 @@ func Volume(bdry []Vector, wdg []int) Real {
 	for i := 0; i < len(bdry); i++ {
 		mat[i] = make([]Real, len(bdry))
 		for j := 0; j < len(bdry); j++ {
-			mat[i][j] = bdry[i].Map(wdg[j]).(Real)
+			mat[i][j] = bdry[i].Map(wdg[j])
 		}
 	}
 	return Det(mat)

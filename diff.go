@@ -1,9 +1,5 @@
 package gocalc
 
-type Continuous interface {
-	Delta(Point, Real) Real
-}
-
 func Partial(f func(Point) Real, p, u Vector, delta Real) Real {
 	x := p.Add(u.Scale(delta)).(Vector)
 	return f(x).Add(f(p).AddInv()).(Real).Mul(delta.MulInv()).(Real)

@@ -31,11 +31,13 @@ func Integer(f Real, n int) Real {
 	o := f.One().(Real)
 	if n < 0 {
 		o = o.AddInv().(Real)
+		n = -n
 	}
+	z := f.Zero().(Real)
 	for i := 0; i < n; i++ {
-		o = o.Add(o).(Real)
+		z = z.Add(o).(Real)
 	}
-	return o
+	return z
 }
 
 func Rational(f Real, r [2]int) Real {
@@ -51,8 +53,10 @@ func Rational(f Real, r [2]int) Real {
 
 func Sqrt(a Real) Real {
 	x := a.One().(Real)
+	half := Rational(x, [2]int{1, 2})
 	for !a.Equals(x.Mul(x).(Real)) {
-		x = x.Add(a.Mul(x.MulInv()).(Real)).(Real).Mul(Rational(x, [2]int{1, 2})).(Real)
+		x = x.Add(a.Mul(x.MulInv()).(Real)).(Real)
+		x = x.Mul(half).(Real)
 	}
 	return x
 }

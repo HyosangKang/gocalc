@@ -22,7 +22,7 @@ func TestDet(t *testing.T) {
 
 type Surface struct {
 	Rect
-	Local func(...float64) []float64
+	Local func(float64, float64) []float64
 }
 
 var _ gocalc.Manifold = Surface{}
@@ -37,14 +37,14 @@ func (s Surface) Locals() <-chan gocalc.Parametric {
 }
 
 func (s Surface) Map(p gocalc.Point) gocalc.Vector {
-	if p.Len() != len(s.Rect) {
+	if p.Len() != 2 {
 		panic("Surface.Map: P dim mismatch")
 	}
 	x := make([]float64, p.Len())
 	for i := range x {
 		x[i] = p.Map(i).ToFloat()
 	}
-	y := s.Local(x...)
+	y := s.Local(x[0], x[1])
 	v := make(SimpleVector, len(y))
 	copy(v, y)
 	return v
@@ -94,11 +94,11 @@ func TestIntegral(t *testing.T) {
 				{0, 2 * math.Pi},
 				{0, math.Pi},
 			},
-			Local: func(x ...float64) []float64 {
+			Local: func(x, y float64) []float64 {
 				return []float64{
-					math.Sin(x[1]) * math.Cos(x[0]),
-					math.Sin(x[1]) * math.Sin(x[0]),
-					math.Cos(x[1]),
+					math.Sin(y) * math.Cos(x),
+					math.Sin(y) * math.Sin(x),
+					math.Cos(y),
 				}
 			},
 		},

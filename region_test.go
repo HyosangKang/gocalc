@@ -18,14 +18,6 @@ func (i Interval) Dim() int {
 	return 1
 }
 
-func (i Interval) Sup(int) gocalc.Real {
-	return SimpleReal(i[1])
-}
-
-func (i Interval) Inf(int) gocalc.Real {
-	return SimpleReal(i[0])
-}
-
 func (i Interval) Corner() gocalc.Vector {
 	return SimpleVector{i[0]}
 }
@@ -53,14 +45,6 @@ func (r Rect) Contains(p gocalc.Point) bool {
 
 func (r Rect) Dim() int {
 	return len(r)
-}
-
-func (r Rect) Sup(i int) gocalc.Real {
-	return SimpleReal(r[i][1])
-}
-
-func (r Rect) Inf(i int) gocalc.Real {
-	return SimpleReal(r[i][0])
 }
 
 func (r Rect) Corner() gocalc.Vector {
